@@ -127,6 +127,7 @@
             });
 
             document.getElementById("kpiRoi").innerText = investido > 0 ? ((saldo / investido) * 100).toFixed(1) + "%" : "0%";
+            document.getElementById("kpiRoi").style.color = saldo > 0 ? "var(--green)" : "var(--red)";
             document.getElementById("kpiProfit").innerText = "R$ " + saldo.toFixed(2);
             document.getElementById("kpiProfit").style.color = saldo > 0 ? "var(--green)" : "var(--red)";
             document.getElementById("kpiCount").innerText = allBets.length;
