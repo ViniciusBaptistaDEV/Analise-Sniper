@@ -1,265 +1,802 @@
 :root {
-            --primary: #212529;
-            --green: #198754;
-            --green-hover: #157347;
-            --red: #dc3545;
-            --bg: #f0f2f5;
-            --blue: #0d6efd;
-            --orange: #fd7e14;
-            --yellow: #f1c40f;
-            --white: #ffffff;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
+    --primary: #212529;
+    --green: #198754;
+    --green-hover: #157347;
+    --red: #dc3545;
+    --bg: #f0f2f5;
+    --blue: #0d6efd;
+    --orange: #fd7e14;
+    --yellow: #f1c40f;
+    --white: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
 
-        body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: var(--bg);
-            padding: 0;
-            color: #333;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    padding: 0;
+    color: #333;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            flex: 1;
-            width: 100%;
-            box-sizing: border-box;
-        }
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+}
 
-        /* --- ESTILIZAÇÃO GERAL DE BOTÕES (Hover e Click) --- */
-        button, select {
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s, box-shadow 0.2s !important;
-        }
+/* --- ESTILIZAÇÃO GERAL DE BOTÕES (Hover e Click) --- */
+button,
+select {
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s, box-shadow 0.2s !important;
+}
 
-        button:hover {
-            transform: scale(1.05);
-            filter: brightness(1.1);
-        }
+button:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
 
-        button:active {
-            transform: scale(0.95) translateY(2px) !important;
-            box-shadow: inset 0 3px 5px rgba(0,0,0,0.1) !important;
-        }
+button:active {
+    transform: scale(0.95) translateY(2px) !important;
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.1) !important;
+}
 
-        header { margin-bottom: 30px; }
-        h1 { margin: 0; font-size: 28px; font-weight: 800; color: var(--primary); }
-        .subtitle { color: #6c757d; font-size: 14px; }
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
 
-        .upload-section {
-            background: var(--white);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            border: 2px dashed #ced4da;
-            margin-bottom: 30px;
-        }
+h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-        .upload-section.loaded { border-color: var(--green); background: #f8fff9; }
+.subtitle {
+    margin: 5px 0 0 0;
+    color: #6c757d;
+    font-size: 14px;
+}
 
-        .file-input-label { cursor: pointer; display: block; }
-        .file-input-label i { font-size: 40px; color: var(--blue); display: block; margin-bottom: 10px; }
-        #fileInput { display: none; }
+.main-header img {
+    height: 50px;
+    width: auto;
+    border-radius: 8px;
+}
 
-        .btn-analyze {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 15px;
-            margin-left: auto;
-            margin-right: auto;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            animation: slideUp 0.3s ease-out;
-        }
+.upload-section {
+    background: var(--white);
+    cursor: pointer;
+    padding: 60px 40px;
+    border-radius: 40px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    border: 2px dashed #ced4da;
 
-        .btn-reset {
-            background: var(--green);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 6px rgba(25, 135, 84, 0.3);
-        }
+    /* CENTRALIZAÇÃO E POSICIONAMENTO */
+    max-width: 600px;
+    /* Evita que o box fique muito largo em telas grandes */
+    margin: 16vh auto 40px;
+    /* 12vh de margem no topo empurra para o meio da tela */
 
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #dee2e6;
-            justify-content: space-between;
-            align-items: center;
-        }
+    overflow: hidden;
+}
 
-        .tab-btn {
-            padding: 12px 24px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-weight: 600;
-            color: #6c757d;
-            border-bottom: 3px solid transparent;
-        }
+.upload-section.loaded {
+    border-color: var(--green);
+    background: #f8fff9;
+}
 
-        .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+/* Um leve destaque para o usuário saber que é clicável */
+.upload-section:hover {
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.02);
+}
 
-        .tab-content { display: none; animation: fadeIn 0.4s; }
-        .tab-content.active { display: block; }
+.clique {
+    /* Garante que qualquer animação seja suave */
+    transition: all 0.2s ease-out;
+}
 
-        .kpi-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
+/* Estado de Clique: quando o usuário pressiona o mouse/dedo */
+.clique:active {
+    /* 1. Faz o elemento "descer" levemente */
+    transform: translateY(2px) scale(0.99);
 
-        .kpi {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border-top: 4px solid #eee;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+    /* 2. Suaviza a sombra para parecer que encostou no fundo */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 
-        .kpi:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            cursor: default;
-        }
+    /* 3. Escurece levemente o fundo (opcional, mas ajuda) */
+    background-color: #f8f9fa;
+}
 
-        .kpi small {
-            font-size: 11px;
-            color: #888;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
+.file-input-label {
+    cursor: pointer;
+    display: block;
+}
 
-        .kpi strong {
-            display: block;
-            font-size: 28px;
-            margin-top: 8px;
-            color: var(--primary);
-        }
+.file-input-label i {
+    font-size: 40px;
+    color: var(--blue);
+    display: block;
+    margin-bottom: 10px;
+}
 
-        .market-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+#fileInput {
+    display: none;
+}
 
-        .market-card {
-            background: var(--white);
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-        }
+#fileName {
+    font-weight: bold;
+}
 
-        .market-card h4 { margin: 0 0 15px 0; font-size: 13px; color: #6c757d; text-transform: uppercase; }
+.btn-analyze {
+    cursor: pointer;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 15px;
+    margin-left: auto;
+    margin-right: auto;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    /* Garante que qualquer animação seja suave */
+    transition: all 0.2s ease-out;
+}
 
-        .market-pill {
-            background: #f8f9fa;
-            padding: 12px 18px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #e9ecef;
-            font-weight: 600;
-        }
+.btn-analyze:hover {
+    cursor: pointer;
+}
 
-        .filter-bar {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            box-shadow: var(--shadow);
-            border: 1px solid #e0e0e0;
-        }
+/* IMPORTANTE: Impede que o botão de "Analisar" sofra o efeito junto */
+.btn-analyze:active {
+    transform: none !important;
+}
 
-        .filter-group { display: flex; align-items: center; gap: 10px; }
-        .filter-group label { font-size: 13px; font-weight: 700; color: #6c757d; text-transform: uppercase; }
+.btn-reset {
+    background: var(--green);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(25, 135, 84, 0.3);
+}
 
-        .filter-bar select {
-            padding: 10px 16px;
-            border-radius: 10px;
-            border: 1px solid #dcdcdc;
-            background-color: #fdfdfd;
-            font-size: 14px;
-            font-weight: 600;
-            color: #444;
-            cursor: pointer;
-            outline: none;
-            min-width: 180px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #dee2e6;
+    justify-content: space-between;
+    align-items: center;
+}
 
-        .filter-bar select:hover { border-color: var(--blue); background-color: #fff; }
+.tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #6c757d;
+    border-bottom: 3px solid transparent;
+}
 
-        .chart-container {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            height: 350px;
-        }
+.tab-btn.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+}
 
-        .table-container { background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #f8f9fa; padding: 18px; text-align: left; font-weight: 700; color: #495057; }
-        td { padding: 16px 18px; border-bottom: 1px solid #f1f3f5; }
+.tab-content {
+    display: none;
+    animation: fadeIn 0.4s;
+}
 
-        .badge { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .badge-sniper { background: #fff3cd; color: #856404; }
-        .badge-multi { background: #d1ecf1; color: #0c5460; }
-        .badge-create { background: #e2d9f3; color: #4b2394; }
-        .badge-cashout { background: #ffe5d9; color: #d35400; }
+.tab-content.active {
+    display: block;
+}
 
-        .result-pill { padding: 4px 10px; border-radius: 20px; font-size: 10px; color: white; font-weight: bold; }
-        .bg-green { background-color: var(--green); }
-        .bg-red { background-color: var(--red); }
-        .bg-orange { background-color: var(--orange); }
-        .status-green { color: var(--green); font-weight: bold; }
-        .status-red { color: var(--red); font-weight: bold; }
-        .status-yellow { color: var(--yellow); font-weight: bold; }
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.kpi {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-top: 4px solid #eee;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-        #rawText { display: none; }
+.kpi:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    cursor: default;
+}
 
-        .footer {
-            padding: 20px 0;
-            border-top: 1px solid #dcdcdc;
-            background: var(--white);
-            text-align: center;
-            color: #6c757d;
-            font-size: 14px;
-            width: 100%;
-            margin-top: auto;
-        }
-        .footer strong { color: var(--primary); font-weight: 700; }
+.kpi small {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.kpi strong {
+    display: block;
+    font-size: 28px;
+    margin-top: 8px;
+    color: var(--primary);
+}
+
+.market-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.market-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+.market-card h4 {
+    margin: 0 0 15px 0;
+    font-size: 13px;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.market-pill {
+    background: #f8f9fa;
+    padding: 12px 18px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e9ecef;
+    font-weight: 600;
+}
+
+.filter-bar {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    box-shadow: var(--shadow);
+    border: 1px solid #e0e0e0;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.filter-bar select {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    background-color: #fdfdfd;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    cursor: pointer;
+    outline: none;
+    min-width: 180px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.filter-bar select:hover {
+    border-color: var(--blue);
+    background-color: #fff;
+}
+
+.chart-container {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    height: 350px;
+}
+
+.table-container {
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th {
+    background: #f8f9fa;
+    padding: 18px;
+    text-align: left;
+    font-weight: 700;
+    color: #495057;
+}
+
+td {
+    padding: 16px 18px;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.badge {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.badge-sniper {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-multi {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.badge-create {
+    background: #e2d9f3;
+    color: #4b2394;
+}
+
+.badge-cashout {
+    background: #ffe5d9;
+    color: #d35400;
+}
+
+.result-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    color: white;
+    font-weight: bold;
+}
+
+.bg-green {
+    background-color: var(--green);
+}
+
+.bg-red {
+    background-color: var(--red);
+}
+
+.bg-orange {
+    background-color: var(--orange);
+}
+
+.status-green {
+    color: var(--green);
+    font-weight: bold;
+}
+
+.status-red {
+    color: var(--red);
+    font-weight: bold;
+}
+
+.status-yellow {
+    color: var(--yellow);
+    font-weight: bold;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#rawText {
+    display: none;
+}
+
+.footer {
+    padding: 20px 0;
+    border-top: 1px solid #dcdcdc;
+    background: var(--white);
+    text-align: center;
+    color: #6c757d;
+    font-size: 14px;
+    width: 100%;
+    margin-top: auto;
+}
+
+.footer strong {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* ========================================================
+    PLACAR DOS FILTROS
+======================================================== */
+.filter-stats-container {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Pílula exclusiva para o Total Filtrado (cinza neutro) */
+.total-pill {
+    margin-left: auto;
+    /* Empurra o total lá para a direita */
+    background: #e9ecef;
+    color: #495057;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+
+
+/* ========================================================
+   MODAL CUSTOMIZADO
+======================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    /* Efeito de desfoque no fundo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-card {
+    background: var(--white);
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+}
+
+.modal-icon {
+    font-size: 50px;
+    margin-bottom: 20px;
+}
+
+.modal-card h2 {
+    margin: 0 0 10px 0;
+    color: var(--primary);
+}
+
+.modal-card p {
+    color: #6c757d;
+    line-height: 1.5;
+    margin-bottom: 30px;
+}
+
+.btn-modal {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.btn-modal:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+
+
+
+
+
+/* ========================================================
+   RESPONSIVIDADE (MEDIA QUERIES)
+======================================================== */
+
+/* 1. Telas Maiores (Monitores Ultrawide e Desktops grandes) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1300px;
+        /* Expande o dashboard para aproveitar telas maiores */
+    }
+}
+
+/* 2. Notebooks menores e Tablets em modo paisagem (Até 992px) */
+@media (max-width: 992px) {
+    .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+        /* Força os KPIs a ficarem em 2 colunas */
+    }
+
+    .filter-bar {
+        flex-wrap: wrap;
+        /* Permite que os filtros pulem de linha se faltar espaço */
+    }
+
+    .filter-group {
+        flex: 1 1 45%;
+        /* Faz os filtros dividirem o espaço igualmente */
+    }
+
+    .filter-bar select {
+        width: 100%;
+    }
+}
+
+/* 3. Tablets em modo retrato e Celulares maiores (Até 768px) */
+@media (max-width: 768px) {
+
+    .main-header {
+        flex-direction: column !important;
+        text-align: center;
+        gap: 20px !important;
+    }
+
+    .main-header div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #mobileButtonContainer {
+        display: block;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    /* Força o botão a ocupar a largura toda no celular */
+    .btn-reset {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center;
+        padding: 8px !important;
+    }
+
+    /* Ajuste para o container das abas não ficar encostado */
+    .tabs {
+        margin-top: 10px;
+        overflow-x: auto;
+        white-space: nowrap;
+        justify-content: flex-start;
+        padding-bottom: 5px;
+    }
+
+    .tab-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .market-row {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .filter-stats-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .total-pill {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    /* Evita que a tabela vaze lateralmente no celular */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    /* 2. A MÁGICA DA TABELA (FORMATO CARD) */
+    .table-container table,
+    .table-container tbody,
+    .table-container tr,
+    .table-container td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .table-container thead {
+        display: none;
+        /* Esconde o cabeçalho clássico */
+    }
+
+    .table-container tr {
+        margin-bottom: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        background: var(--white);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        /* Efeito de cartão levantado */
+    }
+
+    .table-container td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+        text-align: right;
+        font-size: 14px;
+    }
+
+    .table-container td:last-child {
+        border-bottom: none;
+        /* Tira a linha do último item do card */
+    }
+
+    /* Adiciona os nomes das colunas na frente de cada valor do card dinamicamente */
+    .table-container td:nth-child(1)::before {
+        content: "Data:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table-container td:nth-child(2)::before {
+        content: "Status:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table-container td:nth-child(3)::before {
+        content: "Mercado:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table-container td:nth-child(4)::before {
+        content: "Investimento:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table-container td:nth-child(5)::before {
+        content: "Retorno:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table-container td:nth-child(6)::before {
+        content: "Lucro:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table-container td:nth-child(7)::before {
+        content: "Acumulado:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+}
+
+/* 4. Celulares pequenos (Até 480px) */
+@media (max-width: 480px) {
+    .container {
+        padding: 20px 15px;
+        /* Reduz margens para ganhar espaço na tela */
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .subtitle {
+        font-size: 13px;
+    }
+
+    /* Coloca cada KPI em uma única linha */
+    .kpi-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* Ajusta o tamanho do gráfico */
+    .chart-container {
+        padding: 15px;
+        height: 300px;
+    }
+
+    .btn-analyze {
+        width: 100%;
+        /* Botão de analisar ocupa toda a tela */
+    }
+}

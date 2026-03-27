@@ -1,196 +1,390 @@
- let chartInstance = null;
-        let allBets = [];
+import { parseSportingbetPDF } from "./pdfParser.js";
+import { classifyMarket } from "./marketClassifier.js";
 
-        async function handleFileUpload() {
-            const file = document.getElementById('fileInput').files[0];
-            if (file) {
-                document.getElementById('fileName').innerText = "✅ " + file.name;
-                document.getElementById('uploadBox').classList.add('loaded');
-                document.getElementById('uploadIcon').innerText = "✔️";
-                await extrairPDF(file);
-                document.getElementById('analyzeBtn').style.display = 'flex';
-            }
+let allBets = [];
+let chartInstance = null;
+
+
+// ========================================================
+// MODAL DE ALERTA CUSTOMIZADO:
+// ========================================================
+window.showAlert = function (title, message, icon = "❌") {
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalMessage").innerText = message;
+    document.getElementById("modalIcon").innerText = icon;
+    document.getElementById("customModal").style.display = "flex";
+};
+
+// Função para fechar o modal e resetar a página em caso de erro
+window.closeModal = function () {
+    document.getElementById("customModal").style.display = "none";
+    // Como combinamos, após o erro, resetamos a tela inicial
+    window.location.reload();
+};
+
+
+// ========================================================
+// UPLOAD DO PDF
+// ========================================================
+window.handleFileUpload = async function () {
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) return;
+
+    try {
+        const processedBets = await processPDF(file);
+
+        // VALIDAÇÃO: Se não encontrar nenhuma aposta, o PDF é inválido para o sistema
+        if (!processedBets || processedBets.length === 0) {
+            window.showAlert(
+                "Arquivo Inválido",
+                "O arquivo enviado não é um histórico de apostas válido da Sportingbet ou está vazio.",
+                "⚠️"
+            );
+            return;
         }
 
-        function switchTab(evt, tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            evt.currentTarget.classList.add('active');
+        // Se passar na validação, segue o fluxo normal
+        allBets = processedBets;
+
+        document.getElementById("uploadBox").classList.remove("clique");
+        document.getElementById("fileName").innerText = "📄 " + file.name;
+        document.getElementById("uploadBox").classList.add("loaded");
+
+        console.log("--- AUDITORIA DAS 5 PRIMEIRAS APOSTAS ---");
+        console.table(allBets.slice(0, 5));
+
+        document.getElementById("analyzeBtn").style.display = "flex";
+
+    } catch (error) {
+        window.showAlert(
+            "Erro de Leitura",
+            "Não conseguimos processar este PDF. Verifique se o arquivo está correto.",
+            "❌"
+        );
+    }
+};
+
+
+// ========================================================
+// PROCESSAMENTO COMPLETO
+// ========================================================
+async function processPDF(file) {
+    const parsed = await parseSportingbetPDF(file);
+
+    return parsed.map(b => ({
+        ...b,
+        mercado: classifyMarket(b),
+        statusLabel: resolveStatus(b),
+        statusColor: resolveColor(b)
+    }));
+}
+
+
+// ========================================================
+// STATUS
+// ========================================================
+function resolveStatus(b) {
+    if (b.retorno > b.stake) return "GREEN";
+    if (b.retorno === 0) return "RED";
+    if (b.retorno > 0 && b.retorno < b.stake) return "CASH OUT";
+    return "RED";
+}
+
+function resolveColor(b) {
+    if (b.retorno > b.stake) return "bg-green";
+    if (b.retorno === 0) return "bg-red";
+    return "bg-orange";
+}
+
+
+// ========================================================
+// BOTÃO ANÁLISE
+// ========================================================
+window.analisarAgora = function () {
+
+    document.getElementById("uploadBox").style.display = "none";
+    document.getElementById("mainUI").style.display = "block";
+
+    ajustarPosicaoBotao();
+    preencherDashboard();
+    preencherTabela(allBets);
+    preencherFiltros();
+
+};
+
+
+// ========================================================
+// DASHBOARD
+// ========================================================
+function preencherDashboard() {
+    let saldo = 0, investido = 0, wins = 0;
+    let labels = ["Início"];
+    let dataset = [0];
+    let stats = {};
+
+    allBets.forEach(bet => {
+        saldo += bet.lucro;
+        investido += bet.stake;
+
+        if (bet.lucro > 0) wins++;
+
+        labels.push(bet.dateStr.substring(0, 5));
+        dataset.push(saldo);
+
+        if (!stats[bet.mercado]) stats[bet.mercado] = { lucro: 0, inv: 0 };
+        stats[bet.mercado].lucro += bet.lucro;
+        stats[bet.mercado].inv += bet.stake;
+    });
+
+    document.getElementById("kpiRoi").innerText =
+        investido > 0 ? ((saldo / investido) * 100).toFixed(1) + "%" : "0%";
+
+    document.getElementById("kpiProfit").innerText =
+        "R$ " + saldo.toFixed(2);
+
+    document.getElementById("kpiCount").innerText = allBets.length;
+
+    document.getElementById("kpiWinrate").innerText =
+        allBets.length > 0 ? ((wins / allBets.length) * 100).toFixed(1) + "%" : "0%";
+
+    // MELHOR MERCADO
+    let best = "---";
+    let maxL = -999999;
+
+    for (const m of Object.keys(stats)) {
+        if (stats[m].lucro > maxL) {
+            maxL = stats[m].lucro;
+            best = m;
         }
+    }
 
-        async function extrairPDF(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-            let fullText = "";
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                fullText += textContent.items.map(item => item.str).join("\n") + "\n";
-            }
-            document.getElementById('rawText').value = fullText;
-        }
+    document.getElementById("bestMarket").innerText = best;
 
-        function analisarAgora() {
-            const text = document.getElementById('rawText').value;
-            if (!text.trim()) return;
+    // GRÁFICO
+    renderChart(labels, dataset);
 
-            const blocos = text.split(/ID do cupom\s*:/i);
-            allBets = [];
-            const uniqueMarkets = new Set();
+    // ==========================================
+    // MERCADOS NA DASHBOARD (AQUI ESTÁ A OTIMIZAÇÃO)
+    // ==========================================
+    const box = document.getElementById("marketList");
+    let marketHtml = ""; // Rascunho criado para não travar a tela
 
-            for (let i = 1; i < blocos.length; i++) {
-                const bloco = blocos[i];
-                const dateMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
-                if (!dateMatch) continue;
+    Object.keys(stats).forEach(m => {
+        const roi = stats[m].inv > 0 ? ((stats[m].lucro / stats[m].inv) * 100).toFixed(1) : 0;
 
-                const [d, m, y] = dateMatch[1].split('/').map(Number);
-                const betDate = new Date(y, m - 1, d);
+        let color = "status-yellow";
+        if (stats[m].lucro > 0) color = "status-green";
+        if (stats[m].lucro < 0) color = "status-red";
 
-                const isLossText = bloco.includes("DERROTA") || bloco.includes("Perdidas");
-                const isCashout = bloco.includes("APOSTA ENCERRADA");
-                const bLower = bloco.toLowerCase();
+        marketHtml += `
+            <div class="market-pill">
+                <span>${m}</span>
+                <strong class="${color}">${roi}%</strong>
+            </div>
+        `;
+    });
 
-                const moneyMatches = bloco.match(/R\$\s?([\d\.,]+)/g);
-                if (moneyMatches && moneyMatches.length > 0) {
-                    const parseBRL = (s) => parseFloat(s.replace(/R\$/g, '').replace(/\./g, '').replace(',', '.').trim());
-                    const stake = parseBRL(moneyMatches[0]);
-                    let retorno = 0;
-                    
-                    if (!isLossText) {
-                        const valores = moneyMatches.map(m => parseBRL(m));
-                        retorno = Math.max(...valores);
+    // Injeta tudo no HTML de uma única vez (super rápido)
+    box.innerHTML = marketHtml;
+
+    // ==========================================
+    // AUDITORIA MATEMÁTICA
+    // ==========================================
+    console.log("=== AUDITORIA FINANCEIRA GERAL ===");
+    console.log("1. Total de Apostas Lidas:", allBets.length);
+    console.log("2. Total de Greens (Wins):", wins);
+    console.log("3. Winrate Calculado (Greens / Total):", (allBets.length > 0 ? ((wins / allBets.length) * 100).toFixed(2) : 0) + "%");
+    console.log("4. Investimento Total (Soma das Stakes): R$", investido.toFixed(2));
+    console.log("5. Lucro Líquido (Soma dos Lucros): R$", saldo.toFixed(2));
+    console.log("6. ROI Geral (Lucro / Investimento):", (investido > 0 ? ((saldo / investido) * 100).toFixed(2) : 0) + "%");
+    console.table(stats); // Mostra a matemática de cada mercado separadamente
+    console.log("==================================");
+
+}
+
+
+// ========================================================
+// GRÁFICO
+// ========================================================
+function renderChart(labels, dataSet) {
+
+    const ctx = document.getElementById("chart").getContext("2d");
+
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Evolução Bancária",
+                data: dataSet,
+                borderColor: "#0d6efd",
+                backgroundColor: "rgba(13,110,253,0.15)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: v => "R$ " + v
                     }
-
-                    const lucroCalculado = retorno - stake;
-                    let statusLabel = "RED"; 
-                    let statusColor = "bg-red";
-
-                    if (lucroCalculado > 0.01) {
-                        statusLabel = "GREEN";
-                        statusColor = "bg-green";
-                    } else if (isCashout || (retorno > 0 && retorno <= stake)) {
-                        statusLabel = "CASH OUT";
-                        statusColor = "bg-orange";
-                    }
-
-                    let mercado = "Múltipla de Vitórias 🚀";
-                    
-                    // PRIORIDADE DE MERCADO AJUSTADA
-                    if (isCashout) {
-                        mercado = "Aposta Encerrada ⚠️";
-                    } else if (bLower.includes("criar aposta")) {
-                        mercado = "Criar Aposta 🛠️";
-                    } else if (bLower.includes("escanteios") || bLower.includes("cantos") || (bLower.includes("mais de") && bLower.includes(".5") && !bLower.includes("resultado"))) {
-                        mercado = "Escanteios 🎯";
-                    }
-
-                    uniqueMarkets.add(mercado);
-                    allBets.push({
-                        timestamp: betDate.getTime(), dateStr: dateMatch[1], stake,
-                        retorno, lucro: lucroCalculado, mercado, statusLabel, statusColor
-                    });
                 }
             }
-
-            allBets.sort((a, b) => a.timestamp - b.timestamp);
-            const marketSelect = document.getElementById('filterMarket');
-            marketSelect.innerHTML = '<option value="ALL">Todos os Mercados</option>';
-            uniqueMarkets.forEach(m => marketSelect.innerHTML += `<option value="${m}">${m}</option>`);
-
-            document.getElementById('mainUI').style.display = 'block';
-            document.getElementById('uploadBox').style.display = 'none';
-            renderizarDashboard();
         }
+    });
+}
 
-        function aplicarFiltros() {
-            const status = document.getElementById('filterStatus').value;
-            const market = document.getElementById('filterMarket').value;
-            const filtered = allBets.filter(bet => {
-                return (status === 'ALL' || bet.statusLabel === status) && (market === 'ALL' || bet.mercado === market);
-            });
-            renderizarTabela(filtered);
+
+// ========================================================
+// TABELA (OTIMIZADA E COM PLACAR DINÂMICO)
+// ========================================================
+function preencherTabela(arr) {
+    const tbody = document.getElementById("tableBody");
+    const statsBox = document.getElementById("filterStats"); // Pega a div que criamos no HTML
+
+    let tempSaldo = 0;
+    let htmlString = "";
+
+    // Contadores para o placar dinâmico
+    let greens = 0;
+    let reds = 0;
+    let cashouts = 0;
+
+    arr.forEach(bet => {
+        // Lógica da Tabela
+        tempSaldo += bet.lucro;
+
+        htmlString += `
+            <tr>
+                <td>${bet.dateStr}</td>
+                <td><span class="result-pill ${bet.statusColor}">${bet.statusLabel}</span></td>
+                <td>${bet.mercado}</td>
+                <td>R$ ${bet.stake.toFixed(2)}</td>
+                <td>R$ ${bet.retorno.toFixed(2)}</td>
+                <td>${bet.lucro >= 0 ? "+" : ""}R$ ${bet.lucro.toFixed(2)}</td>
+                <td><strong>R$ ${tempSaldo.toFixed(2)}</strong></td>
+            </tr>
+        `;
+
+        // Lógica do Placar
+        if (bet.statusLabel === "GREEN") greens++;
+        else if (bet.statusLabel === "RED") reds++;
+        else if (bet.statusLabel === "CASH OUT") cashouts++;
+    });
+
+    tbody.innerHTML = htmlString;
+
+    // Atualiza o placar no HTML 
+    if (statsBox) {
+        statsBox.innerHTML = `
+            <span class="result-pill bg-green" style="font-size: 12px; padding: 6px 14px;">GREEN: ${greens}</span>
+            <span class="result-pill bg-red" style="font-size: 12px; padding: 6px 14px;">RED: ${reds}</span>
+            ${cashouts > 0 ? `<span class="result-pill bg-orange" style="font-size: 12px; padding: 6px 14px;">CASH OUT: ${cashouts}</span>` : ""}
+            <span class="total-pill">TOTAL FILTRADO: ${arr.length}</span>
+        `;
+    }
+}
+
+
+// ========================================================
+// FILTROS
+// ========================================================
+function preencherFiltros() {
+    const markets = [...new Set(allBets.map(b => b.mercado))];
+
+    const filter = document.getElementById("filterMarket");
+    filter.innerHTML = `<option value="ALL">Todos os Mercados</option>`;
+
+    markets.forEach(m => {
+        filter.innerHTML += `<option value="${m}">${m}</option>`;
+    });
+}
+
+window.aplicarFiltros = function () {
+    const status = document.getElementById("filterStatus").value;
+    const market = document.getElementById("filterMarket").value;
+
+    const filtered = allBets.filter(b => {
+        const ok1 = status === "ALL" || b.statusLabel === status;
+        const ok2 = market === "ALL" || b.mercado === market;
+        return ok1 && ok2;
+    });
+
+    preencherTabela(filtered);
+};
+
+// ========================================================
+// NAVEGAÇÃO DAS ABAS (TABS)
+// ========================================================
+window.switchTab = function (event, tabId) {
+    // 1. Esconde todo o conteúdo das abas
+    const contents = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < contents.length; i++) {
+        contents[i].style.display = "none";
+        contents[i].classList.remove("active");
+    }
+
+    // 2. Remove o estado "ativo" de todos os botões
+    const btns = document.getElementsByClassName("tab-btn");
+    for (let i = 0; i < btns.length; i++) {
+        btns[i].classList.remove("active");
+    }
+
+    // 3. Mostra o conteúdo da aba selecionada e marca o botão como ativo
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) {
+        selectedTab.style.display = "block";
+        selectedTab.classList.add("active");
+    }
+    event.currentTarget.classList.add("active");
+};
+
+// ========================================================
+// RESPONSIVIDADE DO BOTÃO (MOVER ENTRE CONTAINERS)
+// ========================================================
+function ajustarPosicaoBotao() {
+    const btn = document.getElementById('resetBtn');
+    const mobilePlace = document.getElementById('mobileButtonContainer');
+    const desktopPlace = document.querySelector('.tabs');
+    const imagemSportingbet = document.getElementById('imagemSportingbet');
+
+    // Se a largura da tela for menor ou igual a 850px
+    if (window.innerWidth <= 768) {
+        if (mobilePlace && btn) {
+            mobilePlace.appendChild(btn); // Move para a div vazia em cima
+            imagemSportingbet.style.display = "none"; // Esconde a imagem no celular
         }
-
-        function renderizarDashboard() {
-            let saldo = 0; let investido = 0; let wins = 0;
-            let labels = ["Início"]; let dataSet = [0]; let stats = {};
-
-            allBets.forEach(bet => {
-                saldo += bet.lucro; investido += bet.stake;
-                if (bet.lucro > 0) wins++;
-                labels.push(bet.dateStr.substring(0, 5)); dataSet.push(saldo);
-
-                if (!stats[bet.mercado]) stats[bet.mercado] = { lucro: 0, inv: 0 };
-                stats[bet.mercado].lucro += bet.lucro;
-                stats[bet.mercado].inv += bet.stake;
-            });
-
-            document.getElementById("kpiRoi").innerText = investido > 0 ? ((saldo / investido) * 100).toFixed(1) + "%" : "0%";
-            document.getElementById("kpiRoi").style.color = saldo > 0 ? "var(--green)" : "var(--red)";
-            document.getElementById("kpiProfit").innerText = "R$ " + saldo.toFixed(2);
-            document.getElementById("kpiProfit").style.color = saldo > 0 ? "var(--green)" : "var(--red)";
-            document.getElementById("kpiCount").innerText = allBets.length;
-            document.getElementById("kpiWinrate").innerText = allBets.length > 0 ? ((wins / allBets.length) * 100).toFixed(1) + "%" : "0%";
-
-            const marketBox = document.getElementById("marketList");
-            marketBox.innerHTML = "";
-            let bestM = ""; let maxL = -Infinity;
-            Object.keys(stats).sort((a, b) => stats[b].lucro - stats[a].lucro).forEach(m => {
-                const mRoi = stats[m].inv > 0 ? ((stats[m].lucro / stats[m].inv) * 100).toFixed(1) : 0;
-                let colorClass = stats[m].lucro > 0 ? 'status-green' : (stats[m].lucro < 0 ? 'status-red' : 'status-yellow');
-                marketBox.innerHTML += `<div class="market-pill"><span>${m}</span><strong class="${colorClass}">${mRoi}%</strong></div>`;
-                if (stats[m].lucro > maxL) { maxL = stats[m].lucro; bestM = m; }
-            });
-            document.getElementById("bestMarket").innerText = bestM || "---";
-
-            const ctx = document.getElementById('chart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Evolução Bancária',
-                        data: dataSet,
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.05)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 3
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { ticks: { callback: value => 'R$ ' + value } } }
-                }
-            });
-            renderizarTabela(allBets);
+    } else {
+        if (desktopPlace && btn) {
+            desktopPlace.appendChild(btn); // Devolve para dentro das abas
         }
+    }
+}
 
-        function renderizarTabela(bets) {
-            const tbody = document.getElementById("tableBody");
-            tbody.innerHTML = "";
-            let tempSaldo = 0;
-            bets.forEach(bet => {
-                tempSaldo += bet.lucro;
-                let lucroColor = bet.lucro > 0.01 ? 'status-green' : (bet.lucro < -0.01 ? 'status-red' : 'status-yellow');
-                let badgeClass = "badge-multi";
-                if (bet.mercado.includes('🎯')) badgeClass = "badge-sniper";
-                else if (bet.mercado.includes('🛠️')) badgeClass = "badge-create";
-                else if (bet.mercado.includes('⚠️')) badgeClass = "badge-cashout";
+// Para o botão mudar de lugar se você redimensionar o F12
+window.addEventListener('resize', ajustarPosicaoBotao);
 
-                tbody.innerHTML += `
-                <tr>
-                    <td>${bet.dateStr}</td>
-                    <td><span class="result-pill ${bet.statusColor}">${bet.statusLabel}</span></td>
-                    <td><span class="badge ${badgeClass}">${bet.mercado}</span></td>
-                    <td>R$ ${bet.stake.toFixed(2)}</td>
-                    <td>R$ ${bet.retorno.toFixed(2)}</td>
-                    <td class="${lucroColor} font-weight-bold">${bet.lucro >= 0 ? '+' : ''}R$ ${bet.lucro.toFixed(2)}</td>
-                    <td><strong>R$ ${tempSaldo.toFixed(2)}</strong></td>
-                </tr>`;
-            });
-        }
+// Aguarda o carregamento do documento
+document.addEventListener("DOMContentLoaded", () => {
+    const uploadBox = document.getElementById("uploadBox");
+    const fileInput = document.getElementById("fileInput");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+
+    // 1. Faz o quadrado inteiro abrir o seletor de arquivos
+    uploadBox.addEventListener("click", () => {
+        fileInput.click();
+    });
+
+    // 2. IMPORTANTE: Evita que o clique no botão de "Analisar" 
+    // abra o seletor de arquivos novamente (Stop Propagation)
+    analyzeBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+});
