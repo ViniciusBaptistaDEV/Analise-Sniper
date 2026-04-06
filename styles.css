@@ -8,6 +8,7 @@
     --orange: #fd7e14;
     --yellow: #f1c40f;
     --white: #ffffff;
+    --roxo: #ab77ee;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -745,24 +746,30 @@ td {
     }
 
     .table-container td:nth-child(4)::before {
-        content: "Investimento:";
+        content: "Odd:";
         font-weight: bold;
         color: #6c757d;
     }
 
     .table-container td:nth-child(5)::before {
-        content: "Retorno:";
+        content: "Investimento:";
         font-weight: bold;
         color: #6c757d;
     }
 
     .table-container td:nth-child(6)::before {
-        content: "Lucro:";
+        content: "Retorno:";
         font-weight: bold;
         color: #6c757d;
     }
 
     .table-container td:nth-child(7)::before {
+        content: "Lucro:";
+        font-weight: bold;
+        color: #6c757d;
+    }
+
+    .table-container td:nth-child(8)::before {
         content: "Acumulado:";
         font-weight: bold;
         color: #6c757d;

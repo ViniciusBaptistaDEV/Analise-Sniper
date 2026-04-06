@@ -121,8 +121,11 @@ function preencherDashboard() {
     let labels = ["Início"];
     let dataset = [0];
     let stats = {};
+    let somaOdds = 0;
+    let qtdOdds = 0;
 
     allBets.forEach(bet => {
+
         saldo += bet.lucro;
         investido += bet.stake;
 
@@ -134,6 +137,12 @@ function preencherDashboard() {
         if (!stats[bet.mercado]) stats[bet.mercado] = { lucro: 0, inv: 0 };
         stats[bet.mercado].lucro += bet.lucro;
         stats[bet.mercado].inv += bet.stake;
+
+        if (bet.odd && bet.odd > 0) {
+            somaOdds += bet.odd;
+            qtdOdds++;
+        }
+
     });
 
     document.getElementById("kpiRoi").innerText =
@@ -146,6 +155,10 @@ function preencherDashboard() {
 
     document.getElementById("kpiWinrate").innerText =
         allBets.length > 0 ? ((wins / allBets.length) * 100).toFixed(1) + "%" : "0%";
+
+    // --- EXIBIR A MÉDIA DE ODDS NO DASHBOARD ---
+    let oddMedia = qtdOdds > 0 ? (somaOdds / qtdOdds).toFixed(2) : "0.00";
+    document.getElementById("kpiOddMedia").innerText = oddMedia;
 
     // MELHOR MERCADO
     let best = "---";
@@ -266,6 +279,7 @@ function preencherTabela(arr) {
                 <td>${bet.dateStr}</td>
                 <td><span class="result-pill ${bet.statusColor}">${bet.statusLabel}</span></td>
                 <td>${bet.mercado}</td>
+                <td>${bet.odd ? bet.odd.toFixed(2) : "-"}</td>
                 <td>R$ ${bet.stake.toFixed(2)}</td>
                 <td>R$ ${bet.retorno.toFixed(2)}</td>
                 <td>${bet.lucro >= 0 ? "+" : ""}R$ ${bet.lucro.toFixed(2)}</td>

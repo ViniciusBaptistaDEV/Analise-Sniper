@@ -102,6 +102,36 @@ function extractBet(bloco) {
     const isMultipla = /Múltipla/i.test(bloco) || /escolhas?/i.test(bloco) || /Seleç/i.test(bloco);
 
 
+    // ODD
+    // --- EXTRAÇÃO DA COTA (ODD) ---
+    let odd = 0;
+
+    // 1. Tenta achar a palavra Cota com o número logo na frente (para outros formatos)
+    const oddMatch = bloco.match(/(?:Cota|Odd|@|Cotaç[õo]es)\s*:?\s*(\d+[.,]\d+)/i);
+
+    if (oddMatch) {
+        odd = parseFloat(oddMatch[1].replace(',', '.'));
+    }
+
+    // 2. A MÁGICA AQUI: Procura o número que vem imediatamente APÓS o valor investido (R$)
+    // Exemplo de leitura do PDF: "R$ 100,00 1.25" ou "R$ 50,00 2,10"
+    if (odd === 0) {
+        const oddAposStakeMatch = bloco.match(/R\$\s*[\d.,]+\s+(\d+[,.]\d+)/);
+        if (oddAposStakeMatch) {
+            odd = parseFloat(oddAposStakeMatch[1].replace(',', '.'));
+        }
+    }
+
+    // 3. Fallback matemático apenas para as apostas ganhas (onde o retorno existe)
+    if (odd === 0 && stake > 0 && status === "GREEN" && valoresR$.length > 1) {
+        odd = valoresR$[1] / stake;
+    }
+
+    // Garante que seja um número com 2 casas decimais
+    odd = isNaN(odd) ? 0 : parseFloat(odd.toFixed(2));
+
+    // -------------------------------------------
+
     return {
         dateStr: dateMatch[1],
         timestamp: date.getTime(),
@@ -110,7 +140,8 @@ function extractBet(bloco) {
         lucro: retorno - stake,
         mercadoRaw,
         isMultipla,
-        status
+        status,
+        odd
     };
 }
 
