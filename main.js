@@ -256,24 +256,32 @@ function renderChart(labels, dataSet) {
 
 
 // ========================================================
-// TABELA (OTIMIZADA E COM PLACAR DINÂMICO)
+// TABELA (OTIMIZADA E COM PLACAR DINÂMICO E ACUMULADO CERTO)
 // ========================================================
 function preencherTabela(arr) {
     const tbody = document.getElementById("tableBody");
-    const statsBox = document.getElementById("filterStats"); // Pega a div que criamos no HTML
+    const statsBox = document.getElementById("filterStats"); 
 
-    let tempSaldo = 0;
+    // 1. Viramos a lista de cabeça para baixo para fazer a matemática do Passado para o Futuro
+    let apostasCalculo = [...arr].reverse();
+
+    // 2. Fazemos a soma do Acumulado na ordem certa do tempo
+    let saldoEmTempoReal = 0;
+    apostasCalculo.forEach(bet => {
+        saldoEmTempoReal += bet.lucro;
+        bet.acumulado = saldoEmTempoReal; 
+    });
+
+    // 3. Desviramos a lista para voltar à ordem EXATA do PDF da Sportingbet
+    apostasCalculo.reverse();
+
     let htmlString = "";
-
-    // Contadores para o placar dinâmico
     let greens = 0;
     let reds = 0;
     let cashouts = 0;
 
-    arr.forEach(bet => {
-        // Lógica da Tabela
-        tempSaldo += bet.lucro;
-
+    // 4. Montamos a tabela (agora o Acumulado maior estará no topo!)
+    apostasCalculo.forEach(bet => {
         htmlString += `
             <tr>
                 <td>${bet.dateStr}</td>
@@ -283,11 +291,11 @@ function preencherTabela(arr) {
                 <td>R$ ${bet.stake.toFixed(2)}</td>
                 <td>R$ ${bet.retorno.toFixed(2)}</td>
                 <td>${bet.lucro >= 0 ? "+" : ""}R$ ${bet.lucro.toFixed(2)}</td>
-                <td><strong>R$ ${tempSaldo.toFixed(2)}</strong></td>
+                <td><strong>R$ ${bet.acumulado.toFixed(2)}</strong></td>
             </tr>
         `;
 
-        // Lógica do Placar
+        // Contadores do Placar
         if (bet.statusLabel === "GREEN") greens++;
         else if (bet.statusLabel === "RED") reds++;
         else if (bet.statusLabel === "CASH OUT") cashouts++;
@@ -295,7 +303,6 @@ function preencherTabela(arr) {
 
     tbody.innerHTML = htmlString;
 
-    // Atualiza o placar no HTML 
     if (statsBox) {
         statsBox.innerHTML = `
             <span class="result-pill bg-green" style="font-size: 12px; padding: 6px 14px;">GREEN: ${greens}</span>
