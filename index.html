@@ -54,12 +54,18 @@
             </div>
 
             <div id="tab-dashboard" class="tab-content active">
+
+                <h3 class="section-title">
+                    <span>🚀 Desempenho Geral</span>
+                    <small>Principais métricas de performance</small>
+                </h3>
+
                 <div class="kpi-row">
                     <div class="kpi" style="border-top-color: var(--blue);">
                         <small>% Lucro (ROI)</small>
                         <strong id="kpiRoi">0%</strong>
                     </div>
-                    <div class="kpi" style="border-top-color: var(--green);">
+                    <div class="kpi" style="border-top-color: var(--green-lucro);">
                         <small>Lucro Líquido</small>
                         <strong id="kpiProfit">R$ 0,00</strong>
                     </div>
@@ -67,20 +73,60 @@
                         <small>Total Apostas</small>
                         <strong id="kpiCount">0</strong>
                     </div>
-                    <div class="kpi" style="border-top-color: var(--roxo);">
-                        <small>Média de Odds</small>
-                        <strong id="kpiOddMedia">0.00</strong>
-                    </div>
                     <div class="kpi" style="border-top-color: var(--yellow);">
                         <small>Assertividade</small>
                         <strong id="kpiWinrate">0%</strong>
                     </div>
                 </div>
 
+                <h3 class="section-title">
+                    <span>📊 Médias Globais</span>
+                    <small>Inclui apostas Simples + Bilhetes Combinados</small>
+                </h3>
+
+                <div class="kpi-row">
+                    <div class="kpi" style="border-top-color: var(--roxo);">
+                        <small>Odd Média Geral</small>
+                        <strong id="kpiOddMedia">0.00</strong>
+                    </div>
+                    <div class="kpi" style="border-top-color: var(--green);">
+                        <small>Odd Média Geral (Greens)</small>
+                        <strong id="kpiOddMediaGreen">0.00</strong>
+                    </div>
+                    <div class="kpi" style="border-top-color: var(--red);">
+                        <small>Odd Média Geral (Reds)</small>
+                        <strong id="kpiOddMediaRed">0.00</strong>
+                    </div>
+                </div>
+
+                <h3 class="section-title">
+                    <span>🎯 Médias de Apostas Simples</span>
+                    <small>Exclui Bilhetes Combinados</small>
+                </h3>
+
+                <div class="kpi-row">
+                    <div class="kpi" style="border-top-color: var(--roxo);">
+                        <small>Odd Média Simples</small>
+                        <strong id="kpiOddMediaSimples">0.00</strong>
+                    </div>
+                    <div class="kpi" style="border-top-color: var(--green);">
+                        <small>Odd Média Simples (Greens)</small>
+                        <strong id="kpiOddMediaGreenSimples">0.00</strong>
+                    </div>
+                    <div class="kpi" style="border-top-color: var(--red);">
+                        <small>Odd Média Simples (Reds)</small>
+                        <strong id="kpiOddMediaRedSimples">0.00</strong>
+                    </div>
+                </div>
+
                 <div class="market-row">
                     <div class="market-card">
                         <h4>⭐ Melhor Performance</h4>
-                        <strong id="bestMarket" style="font-size: 20px; color: var(--blue);">---</strong>
+                        <strong id="bestMarket" style="font-size: 20px; color: var(--green);">---</strong>
+                    </div>
+                    <div class="market-card">
+                        <h4>📉 Pior Performance</h4>
+                        <strong id="worstMarket" style="font-size: 20px; color: var(--red);">---</strong>
                     </div>
                     <div class="market-card">
                         <h4>📈 Lucratividade por Mercado</h4>
@@ -88,9 +134,6 @@
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <canvas id="chart"></canvas>
-                </div>
             </div>
 
             <div id="tab-lista" class="tab-content">

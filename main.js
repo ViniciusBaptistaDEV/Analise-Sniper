@@ -2,7 +2,6 @@ import { parseSportingbetPDF } from "./pdfParser.js";
 import { classifyMarket } from "./marketClassifier.js";
 
 let allBets = [];
-let chartInstance = null;
 
 
 // ========================================================
@@ -117,12 +116,22 @@ window.analisarAgora = function () {
 // DASHBOARD
 // ========================================================
 function preencherDashboard() {
+
     let saldo = 0, investido = 0, wins = 0;
     let labels = ["Início"];
     let dataset = [0];
     let stats = {};
+
+    // 1. Variáveis para Odds Gerais
     let somaOdds = 0;
     let qtdOdds = 0;
+    let somaOddsGreen = 0, qtdOddsGreen = 0;
+    let somaOddsRed = 0, qtdOddsRed = 0;
+
+    // 2. Variáveis para Odds Simples (Excluindo Combinados)
+    let somaOddsSimples = 0, qtdOddsSimples = 0;
+    let somaOddsGreenSimples = 0, qtdOddsGreenSimples = 0;
+    let somaOddsRedSimples = 0, qtdOddsRedSimples = 0;
 
     allBets.forEach(bet => {
 
@@ -138,9 +147,34 @@ function preencherDashboard() {
         stats[bet.mercado].lucro += bet.lucro;
         stats[bet.mercado].inv += bet.stake;
 
+        const status = resolveStatus(bet);
+
         if (bet.odd && bet.odd > 0) {
             somaOdds += bet.odd;
             qtdOdds++;
+
+            if (status === "GREEN") {
+                somaOddsGreen += bet.odd;
+                qtdOddsGreen++;
+            } else if (status === "RED") {
+                somaOddsRed += bet.odd;
+                qtdOddsRed++;
+            }
+
+            // Cálculo Apenas Simples (Filtro isMultipla)
+            if (!bet.isMultipla) {
+                somaOddsSimples += bet.odd;
+                qtdOddsSimples++;
+
+                if (status === "GREEN") {
+                    somaOddsGreenSimples += bet.odd;
+                    qtdOddsGreenSimples++;
+                } else if (status === "RED") {
+                    somaOddsRedSimples += bet.odd;
+                    qtdOddsRedSimples++;
+                }
+            }
+
         }
 
     });
@@ -156,25 +190,50 @@ function preencherDashboard() {
     document.getElementById("kpiWinrate").innerText =
         allBets.length > 0 ? ((wins / allBets.length) * 100).toFixed(1) + "%" : "0%";
 
-    // --- EXIBIR A MÉDIA DE ODDS NO DASHBOARD ---
+
+
+
+    // ATUALIZAÇÃO DO DOM - ODDS GERAIS
     let oddMedia = qtdOdds > 0 ? (somaOdds / qtdOdds).toFixed(2) : "0.00";
     document.getElementById("kpiOddMedia").innerText = oddMedia;
+
+    document.getElementById("kpiOddMediaGreen").innerText =
+        qtdOddsGreen > 0 ? (somaOddsGreen / qtdOddsGreen).toFixed(2) : "0.00";
+
+    document.getElementById("kpiOddMediaRed").innerText =
+        qtdOddsRed > 0 ? (somaOddsRed / qtdOddsRed).toFixed(2) : "0.00";
+
+    // ATUALIZAÇÃO DO DOM - ODDS SIMPLES
+    document.getElementById("kpiOddMediaSimples").innerText = qtdOddsSimples > 0 ? (somaOddsSimples / qtdOddsSimples).toFixed(2) : "0.00";
+    document.getElementById("kpiOddMediaGreenSimples").innerText = qtdOddsGreenSimples > 0 ? (somaOddsGreenSimples / qtdOddsGreenSimples).toFixed(2) : "0.00";
+    document.getElementById("kpiOddMediaRedSimples").innerText = qtdOddsRedSimples > 0 ? (somaOddsRedSimples / qtdOddsRedSimples).toFixed(2) : "0.00";
+
+    // ==========================================
+
+
 
     // MELHOR MERCADO
     let best = "---";
     let maxL = -999999;
+
+    // PIOR MERCADO
+    let worstM = "---";
+    let minLucro = 999999;
+
 
     for (const m of Object.keys(stats)) {
         if (stats[m].lucro > maxL) {
             maxL = stats[m].lucro;
             best = m;
         }
+        if (stats[m].lucro < minLucro) {
+            minLucro = stats[m].lucro;
+            worstM = m;
+        }
     }
 
     document.getElementById("bestMarket").innerText = best;
-
-    // GRÁFICO
-    renderChart(labels, dataset);
+    document.getElementById("worstMarket").innerText = worstM;
 
     // ==========================================
     // MERCADOS NA DASHBOARD (AQUI ESTÁ A OTIMIZAÇÃO)
@@ -216,51 +275,13 @@ function preencherDashboard() {
 }
 
 
-// ========================================================
-// GRÁFICO
-// ========================================================
-function renderChart(labels, dataSet) {
-
-    const ctx = document.getElementById("chart").getContext("2d");
-
-    if (chartInstance) chartInstance.destroy();
-
-    chartInstance = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels,
-            datasets: [{
-                label: "Evolução Bancária",
-                data: dataSet,
-                borderColor: "#0d6efd",
-                backgroundColor: "rgba(13,110,253,0.15)",
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: {
-                    ticks: {
-                        callback: v => "R$ " + v
-                    }
-                }
-            }
-        }
-    });
-}
-
 
 // ========================================================
 // TABELA (OTIMIZADA E COM PLACAR DINÂMICO E ACUMULADO CERTO)
 // ========================================================
 function preencherTabela(arr) {
     const tbody = document.getElementById("tableBody");
-    const statsBox = document.getElementById("filterStats"); 
+    const statsBox = document.getElementById("filterStats");
 
     // 1. Viramos a lista de cabeça para baixo para fazer a matemática do Passado para o Futuro
     let apostasCalculo = [...arr].reverse();
@@ -269,7 +290,7 @@ function preencherTabela(arr) {
     let saldoEmTempoReal = 0;
     apostasCalculo.forEach(bet => {
         saldoEmTempoReal += bet.lucro;
-        bet.acumulado = saldoEmTempoReal; 
+        bet.acumulado = saldoEmTempoReal;
     });
 
     // 3. Desviramos a lista para voltar à ordem EXATA do PDF da Sportingbet

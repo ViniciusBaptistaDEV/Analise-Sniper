@@ -2,6 +2,7 @@
     --primary: #212529;
     --green: #198754;
     --green-hover: #157347;
+    --green-lucro: #83ef9e;
     --red: #dc3545;
     --bg: #f0f2f5;
     --blue: #0d6efd;
@@ -220,6 +221,32 @@ h1 {
     display: block;
 }
 
+.section-title {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: var(--primary);
+    display: flex;
+    flex-direction: column;
+    /* Coloca a explicação embaixo do título */
+    gap: 4px;
+    border-left: 4px solid var(--blue);
+    padding-left: 12px;
+}
+
+.section-title span {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.section-title small {
+    font-weight: 400;
+    color: #6c757d;
+    /* Um cinza discreto para a explicação */
+    font-size: 0.85rem;
+}
+
 .kpi-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -335,13 +362,6 @@ h1 {
     background-color: #fff;
 }
 
-.chart-container {
-    background: var(--white);
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: var(--shadow);
-    height: 350px;
-}
 
 .table-container {
     background: var(--white);
@@ -796,11 +816,6 @@ td {
         grid-template-columns: 1fr;
     }
 
-    /* Ajusta o tamanho do gráfico */
-    .chart-container {
-        padding: 15px;
-        height: 300px;
-    }
 
     .btn-analyze {
         width: 100%;
