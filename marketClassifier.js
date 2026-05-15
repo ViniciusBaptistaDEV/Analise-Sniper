@@ -19,6 +19,9 @@ export function classifyMarket(bet) {
         case "ESCANTEIOS":
             return "💎 ANÁLISE DE ESCANTEIOS";
 
+        case "OUTROS":
+            return "🃏 OUTROS MERCADOS";
+
         default:
             return "🏆 RADAR DE VITÓRIAS";
     }

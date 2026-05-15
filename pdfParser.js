@@ -167,7 +167,7 @@ function extractMarket(lower) {
     if (lower.includes("vitória") || lower.includes("dupla chance") || lower.includes("empate") || lower.includes("classifica") || lower.includes("resultado"))
         return "VITORIA";
 
-    return "MERCADO DESCONHECIDO"; // Fallback de segurança
+    return "OUTROS"; // Fallback de segurança
 }
 
 
